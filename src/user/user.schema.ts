@@ -1,5 +1,6 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema({ timestamps: true })
 export class User {
@@ -18,8 +19,8 @@ export class User {
   @Prop({ type: String })
   language_code?: string;
 
-  @Prop({type: [String], default: []})
-  images?: string[]
+  @Prop({ type: [String], default: [] })
+  images?: string[];
 }
 
 export type UserDocument = User & Document;

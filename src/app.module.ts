@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SwipeModule } from './swipe/swipe.module';
 import { validate } from './utils/config';
+import { CityModule } from './city/city.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { validate } from './utils/config';
     MongooseModule.forRoot(process.env.MONGO_CONNECT || ''),
     UserModule,
     SwipeModule,
+    CityModule,
   ],
   controllers: [AppController],
   providers: [AppService],
