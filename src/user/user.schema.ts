@@ -19,6 +19,18 @@ export class User {
   @Prop({ type: String })
   language_code?: string;
 
+  @Prop({ type: String, required: true })
+  name: string;
+
+  @Prop({ type: String, required: true })
+  about: string;
+
+  @Prop({ type: Number, required: true })
+  birthYear: number;
+
+  @Prop({ type: String, required: true })
+  city: string;
+
   @Prop({ type: [String], default: [] })
   images?: string[];
 }

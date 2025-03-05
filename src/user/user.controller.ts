@@ -10,19 +10,20 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UserValidationPipe } from './pipes/user.validation.pipe';
+import { UserService } from './user.service';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @UsePipes(new ValidationPipe())
   @UseInterceptors(FilesInterceptor('images', 3))
   @Post()
   public async createUser(
-    @Body('user') createUserDto: CreateUserDto,
+    @Body(new UserValidationPipe(CreateUserDto.schema))
+    createUserDto: CreateUserDto,
     @UploadedFiles(
       new ParseFilePipe({
         validators: [

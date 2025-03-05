@@ -1,22 +1,28 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER } from '@nestjs/core';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
-import { ConfigModule } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
-import { SwipeModule } from './swipe/swipe.module';
-import { validate } from './utils/config';
 import { CityModule } from './city/city.module';
+import { HttpExceptionFilter } from './exception.filter';
+import { SwipeModule } from './swipe/swipe.module';
+import { UserModule } from './user/user.module';
+
+import { validate } from './utils/config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({isGlobal: true, validate: validate}),
+    ConfigModule.forRoot({ isGlobal: true, validate: validate }),
     MongooseModule.forRoot(process.env.MONGO_CONNECT || ''),
     UserModule,
     SwipeModule,
     CityModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_FILTER, useClass: HttpExceptionFilter },
+  ],
 })
 export class AppModule {}

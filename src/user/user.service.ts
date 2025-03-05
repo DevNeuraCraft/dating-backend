@@ -1,10 +1,11 @@
+import { Model } from 'mongoose';
+import { S3Service } from 'src/s3/s3.service';
+
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from './user.schema';
-import { Model } from 'mongoose';
-import { IResponseUser } from './types/response-user.interface';
 import { CreateUserWithImage } from './types/create-user-with-image';
-import { S3Service } from 'src/s3/s3.service';
+import { IResponseUser } from './types/response-user.interface';
+import { User, UserDocument } from './user.schema';
 
 @Injectable()
 export class UserService {
@@ -21,13 +22,16 @@ export class UserService {
   public async createOne(
     createUserDto: CreateUserWithImage,
   ): Promise<IResponseUser> {
-    const {images, ...rest} = createUserDto
-    const imagesUrl = await this.s3Service.uploadMultipleFiles(images)
+    const { images, ...rest } = createUserDto;
+    const imagesUrl = await this.s3Service.uploadMultipleFiles(images);
 
-    const updatedDto = {...rest, images: imagesUrl}
+    const updatedDto = { ...rest, images: imagesUrl };
 
-    const user = new this.userModel(updatedDto);
-    await user.save();
+    const user = await this.userModel.findOneAndUpdate(
+      { id: updatedDto.id },
+      { ...updatedDto },
+      { new: true, upsert: true },
+    );
 
     return { user };
   }
