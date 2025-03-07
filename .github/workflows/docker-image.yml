@@ -2,9 +2,9 @@ name: Docker Image CI
 
 on:
   push:
-    branches: ["main"]
+    branches: ['master']
   pull_request:
-    branches: ["main"]
+    branches: ['master']
 
 jobs:
   build:
@@ -20,9 +20,9 @@ jobs:
       - name: Checkout main code
         uses: actions/checkout@v2
         with:
-          ref: main
+          ref: master
 
-      - name: Build and Publish main to Github Packages Registry
+      - name: Build and Publish master to Github Packages Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: ghcr.io/DevNeuraCraft/dating-backend
