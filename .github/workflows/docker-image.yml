@@ -1,0 +1,45 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: node:20
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout main code
+        uses: actions/checkout@v2
+        with:
+          ref: main
+
+      - name: Build and Publish main to Github Packages Registry
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: ghcr.io/DevNeuraCraft/dating-backend
+          workdir: .
+          dockerfile: Dockerfile
+          tags: latest
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ghcr.io
+
+      - name: Send Telegram Notification
+        if: success()
+        run: |
+          MESSAGE="✅ Dating Backend успешно собран и загружен в Github Packages."
+          TELEGRAM_BOT_TOKEN="7674748078:AAGpdQpgGIeYewOQkDG1qP7CjkgLgXujUoY"
+          TELEGRAM_CHAT_ID="6366591506"
+
+          curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "text=${MESSAGE}"
