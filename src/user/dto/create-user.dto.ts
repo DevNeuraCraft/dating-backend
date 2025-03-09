@@ -1,22 +1,52 @@
-import * as Joi from 'joi';
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  Min,
+  Max,
+  IsIn,
+  IsNotEmpty,
+} from 'class-validator';
 
 export class CreateUserDto {
-  id: number;
+  @IsString()
+  @IsNotEmpty()
+  id: string;
+
+  @IsString()
+  @IsOptional()
   first_name?: string;
+
+  @IsString()
+  @IsOptional()
   last_name?: string;
+
+  @IsString()
+  @IsOptional()
   username?: string;
+
+  @IsString()
+  @IsOptional()
   language_code?: string;
 
-  static schema = Joi.object({
-    id: Joi.string().required(),
-    first_name: Joi.string().optional(),
-    last_name: Joi.string().allow('').optional(),
-    username: Joi.string().allow('').optional(),
-    language_code: Joi.string().optional(),
-    name: Joi.string().required(),
-    about: Joi.string().required(),
-    birthYear: Joi.number().min(1900).max(new Date().getFullYear()).required(),
-    city: Joi.string().required(),
-    gender: Joi.string().valid('male', 'female').required(),
-  });
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsString()
+  @IsNotEmpty()
+  about: string;
+
+  @IsNumber()
+  @Min(1900)
+  @Max(new Date().getFullYear())
+  birthYear: number;
+
+  @IsString()
+  @IsNotEmpty()
+  city: string;
+
+  @IsString()
+  @IsIn(['male', 'female'])
+  gender: string;
 }
