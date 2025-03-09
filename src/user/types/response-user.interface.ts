@@ -1,5 +1,5 @@
-import { User } from "../user.schema";
+import { User } from '../user.schema';
 
 export interface IResponseUser {
-    user: User
+  user: User | null;
 }

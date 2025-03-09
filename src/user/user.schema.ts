@@ -26,13 +26,13 @@ export class User {
   about: string;
 
   @Prop({ type: Number, required: true })
-  birthYear: number;
+  age: number;
 
   @Prop({ type: String, required: true })
   city: string;
 
   @Prop({ type: [String], default: [] })
-  images?: string[];
+  images: string[];
 }
 
 export type UserDocument = User & Document;
