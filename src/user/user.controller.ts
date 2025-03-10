@@ -13,8 +13,9 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UserService } from './user.service';
+import { IResponseEplores } from './types/respone-explore.inreface';
 import { IResponseUser } from './types/response-user.interface';
+import { UserService } from './user.service';
 
 @Controller('user')
 export class UserController {
@@ -25,7 +26,7 @@ export class UserController {
    * @param id - Telegram ID пользователя (число).
    * @returns Объект с найденным пользователем.
    */
-  @Get('/by-tg-id/:id')
+  @Get('by-tg-id/:id')
   public async findOneByTgId(@Param('id') id: number): Promise<IResponseUser> {
     return await this.userService.findOneByTgId(id);
   }
@@ -35,9 +36,21 @@ export class UserController {
    * @param id - ObjectId пользователя (строка).
    * @returns Объект с найденным пользователем.
    */
-  @Get('/by-id/:id')
+  @Get('by-id/:id')
   public async findOneById(@Param('id') id: string): Promise<IResponseUser> {
     return await this.userService.findOneById(id);
+  }
+
+  /**
+   * Поиска пользователей противоположного пола в том же городе, что и текущий пользователь.
+   * @param {string} id - ID пользователя, для которого выполняется поиск.
+   * @returns {Promise<IResponseEplores>} - Объект с массивом найденных пользователей.
+   */
+  @Get('find-explores/:id')
+  public async findExplores(
+    @Param('id') id: string,
+  ): Promise<IResponseEplores> {
+    return await this.userService.findExplores(id);
   }
 
   /**

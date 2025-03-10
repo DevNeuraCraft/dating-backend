@@ -1,8 +1,9 @@
 import { Document } from 'mongoose';
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Gender } from './enum/gender.enum';
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, versionKey: false })
 export class User {
   @Prop({ required: true, unique: true, type: Number })
   id: number;
@@ -30,6 +31,9 @@ export class User {
 
   @Prop({ type: String, required: true })
   city: string;
+
+  @Prop({ type: String, enum: Gender, required: true })
+  gender: Gender;
 
   @Prop({ type: [String], default: [] })
   images: string[];
