@@ -1,10 +1,11 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { SwipeStatus } from './enum/swipe-status.enum';
-import { SwipeType } from './enum/swipe-type.enum';
 import { User } from 'src/user/user.schema';
 
-@Schema({ timestamps: true })
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { SwipeStatus } from './enum/swipe-status.enum';
+import { SwipeType } from './enum/swipe-type.enum';
+
+@Schema({ timestamps: true, versionKey: false })
 export class Swipe {
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })
   swiper_id: Types.ObjectId;

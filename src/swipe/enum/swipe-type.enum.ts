@@ -1,4 +1,4 @@
 export enum SwipeType {
-  LIKE = 'like',
-  DISLIKE = 'dislike',
+  ACCEPT = 'accept',
+  REJECT = 'reject',
 }
