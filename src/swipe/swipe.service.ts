@@ -9,6 +9,8 @@ import {
   IResponseSwipe,
   IResponseSwipes,
 } from './types/response-swipe.interface';
+import { SwipeStatus } from './enum/swipe-status.enum';
+import { SwipeType } from './enum/swipe-type.enum';
 
 @Injectable()
 export class SwipeService {
@@ -24,7 +26,7 @@ export class SwipeService {
     const skip = (page - 1) * limit;
 
     const swipes = await this.swipeModel
-      .find({ swiper_id: id })
+      .find({ swiper_id: id, swipe_type: { $ne: SwipeType.REJECT } })
       .skip(skip)
       .limit(limit)
       .populate('swiped_id')

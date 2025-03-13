@@ -21,6 +21,15 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  /*
+  DEV
+  */
+
+  @Get('migrate-test')
+  public async migrate(){
+    await this.userService.migrate()
+  }
+
   /**
    * Находит пользователя по Telegram ID.
    * @param id - Telegram ID пользователя (число).
