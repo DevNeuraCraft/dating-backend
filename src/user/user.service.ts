@@ -8,6 +8,9 @@ import { CreateUserWithImage } from './types/create-user-with-image';
 import { IResponseEplores } from './types/respone-explore.inreface';
 import { IResponseUser } from './types/response-user.interface';
 import { User, UserDocument } from './user.schema';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserWithImage } from './types/update-user-with-image';
 
 @Injectable()
 export class UserService {
@@ -87,6 +90,37 @@ export class UserService {
     return { explores };
   }
 
+  public async updateUser(
+    updateUserDto: UpdateUserWithImage,
+  ): Promise<IResponseUser> {
+    const { objectId, images, ...rest } = updateUserDto;
+    const { user } = await this.findOneById(objectId);
+    if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    const imagesUrlToDelete = user.images.filter(
+      (image) => !rest.existsImages?.includes(image),
+    );
+    console.log(imagesUrlToDelete)
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      { _id: objectId },
+      {
+        ...rest,
+        age: rest.birthYear
+          ? new Date().getFullYear() - rest.birthYear
+          : user.age,
+      },
+      { new: true },
+    );
+
+    if (!updatedUser) {
+      throw new HttpException(
+        'User update failed',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return { user: updatedUser };
+  }
+
   public async migrate() {
     const names = ['Alina', 'Alisa', 'Ann', 'Alice', 'Jane', 'Nicole', 'Anby'];
     const objs: User[] = [];
@@ -94,7 +128,7 @@ export class UserService {
     const me = users[0];
     names.forEach((name, index) => {
       const user: User = {
-        id: index,
+        id: Math.floor(Math.random() * (1000 - 100 + 1)) + 100,
         about: me.about,
         age: Math.floor(Math.random() * (25 - 16 + 1)) + 16,
         name: name,
@@ -105,7 +139,6 @@ export class UserService {
 
       objs.push(user);
 
-      // Сохраняем в базу данных
       console.log(user);
     });
     await this.userModel.create(objs);

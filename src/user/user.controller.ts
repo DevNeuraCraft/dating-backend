@@ -7,6 +7,7 @@ import {
   Param,
   ParseFilePipe,
   Post,
+  Put,
   UploadedFiles,
   UseInterceptors,
   ValidationPipe,
@@ -16,6 +17,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { IResponseEplores } from './types/respone-explore.inreface';
 import { IResponseUser } from './types/response-user.interface';
 import { UserService } from './user.service';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -26,8 +28,8 @@ export class UserController {
   */
 
   @Get('migrate-test')
-  public async migrate(){
-    await this.userService.migrate()
+  public async migrate() {
+    await this.userService.migrate();
   }
 
   /**
@@ -87,5 +89,24 @@ export class UserController {
     const updatedDto = { ...createUserDto, images: files };
 
     return this.userService.createOne(updatedDto);
+  }
+
+  @UseInterceptors(FilesInterceptor('images', 3))
+  @Put(':id')
+  public async updateUser(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @UploadedFiles(
+      new ParseFilePipe({
+        validators: [
+          new FileTypeValidator({ fileType: /^(image)\// }),
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 10 }),
+        ],
+        fileIsRequired: false,
+      }),
+    )
+    files: Express.Multer.File[],
+  ): Promise<IResponseUser> {
+    return await this.userService.updateUser({objectId: id, ...updateUserDto, images: files});
   }
 }
