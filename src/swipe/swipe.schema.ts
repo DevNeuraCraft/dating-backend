@@ -7,10 +7,10 @@ import { SwipeType } from './enum/swipe-type.enum';
 
 @Schema({ timestamps: true, versionKey: false })
 export class Swipe {
-  @Prop({ type: Types.ObjectId, ref: User.name, required: true })
+  @Prop({ type: Types.ObjectId, ref: User.name, required: true, index: true })
   swiper_id: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: User.name, required: true })
+  @Prop({ type: Types.ObjectId, ref: User.name, required: true, index: true })
   swiped_id: Types.ObjectId;
 
   @Prop({ type: String, enum: SwipeType, required: true })
@@ -22,3 +22,8 @@ export class Swipe {
 
 export type SwipeDocument = Swipe & Document;
 export const SwipeSchema = SchemaFactory.createForClass(Swipe);
+
+SwipeSchema.index(
+  { swiper_id: 1, swiped_id: 1 },
+  { unique: true, name: 'unique_swiper_swiped' },
+);

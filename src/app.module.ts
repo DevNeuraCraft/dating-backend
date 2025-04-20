@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CityModule } from './city/city.module';
 import { HttpExceptionFilter } from './exception.filter';
+import { OrdersModule } from './orders/orders.module';
 import { SwipeModule } from './swipe/swipe.module';
 import { UserModule } from './user/user.module';
 
@@ -18,6 +19,7 @@ import { validate } from './utils/config';
     UserModule,
     SwipeModule,
     CityModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [

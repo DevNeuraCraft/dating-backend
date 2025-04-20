@@ -5,5 +5,5 @@ export interface IResponseSwipes {
 }
 
 export interface IResponseSwipe {
-  swipe: Swipe;
+  swipe: Swipe | null;
 }

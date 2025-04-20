@@ -5,7 +5,7 @@ import { Gender } from './enum/gender.enum';
 
 @Schema({ timestamps: true, versionKey: false })
 export class User {
-  @Prop({ required: true, unique: true, type: Number })
+  @Prop({ required: true, unique: true, type: Number, index: true })
   id: number;
 
   @Prop({ type: String })

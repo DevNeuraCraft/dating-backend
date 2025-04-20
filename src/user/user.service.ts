@@ -7,16 +7,14 @@ import { Gender } from './enum/gender.enum';
 import { CreateUserWithImage } from './types/create-user-with-image';
 import { IResponseEplores } from './types/respone-explore.inreface';
 import { IResponseUser } from './types/response-user.interface';
-import { User, UserDocument } from './user.schema';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserWithImage } from './types/update-user-with-image';
+import { User, UserDocument } from './user.schema';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly s3Service: S3Service,
-    @InjectModel(User.name) private readonly userModel: Model<UserDocument>, // Используем userModel вместо UserModel
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
   /**
@@ -43,6 +41,10 @@ export class UserService {
     return { user };
   }
 
+  public async getAllCount(): Promise<number> {
+    return await this.userModel.countDocuments();
+  }
+
   /**
    * Находит пользователя по Telegram ID.
    * @param id - Telegram ID пользователя (число).
@@ -58,7 +60,7 @@ export class UserService {
 
   /**
    * Находит пользователя по MongoDB ObjectId.
-   * @param id - ObjectId пользователя (строка).
+   * @param id string - пользователя (строка).
    * @returns Объект с найденным пользователем.
    * @throws HttpException - Если `id` не является валидным ObjectId.
    */
@@ -70,10 +72,18 @@ export class UserService {
   }
 
   /**
-   * Ищет пользователей противоположного пола в том же городе, что и текущий пользователь.
-   * @param {string} id - ID пользователя, для которого выполняется поиск.
-   * @returns {Promise<IResponseEplores>} - Объект с массивом найденных пользователей.
-   * @throws {HttpException} - Если пользователь с указанным ID не найден (404).
+   * Обновляет данные пользователя, включая основную информацию и изображения.
+   * @param {UpdateUserWithImage} updateUserDto - DTO с данными для обновления:
+   *   - objectId: string - ID пользователя
+   *   - images: string[] - Массив новых изображений
+   *   - existsImages: string[] - Массив существующих изображений для сохранения
+   *   - birthYear?: number - Год рождения для пересчёта возраста
+   *   - ...otherFields: any - Другие обновляемые поля пользователя
+   * @returns {Promise<IResponseUser>} - Объект с обновлёнными данными пользователя.
+   * @throws {HttpException} - В случаях:
+   *   - Пользователь не найден (404)
+   *   - Ошибка обновления изображений (500)
+   *   - Ошибка сохранения данных пользователя (500)
    */
   public async findExplores(id: string): Promise<IResponseEplores> {
     const { user } = await this.findOneById(id);
@@ -90,20 +100,53 @@ export class UserService {
     return { explores };
   }
 
-  public async updateUser(
+  public async updateOne(
     updateUserDto: UpdateUserWithImage,
   ): Promise<IResponseUser> {
     const { objectId, images, ...rest } = updateUserDto;
     const { user } = await this.findOneById(objectId);
+
     if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    const imagesUrlToDelete = user.images.filter(
-      (image) => !rest.existsImages?.includes(image),
-    );
-    console.log(imagesUrlToDelete)
+
+    const newImagesUrl = [...user.images];
+
+    if (rest.existsImages && images.length > 0) {
+      try {
+        const imagesUrlToDelete = user.images.filter(
+          (image) => !rest.existsImages!.includes(image),
+        );
+
+        // Индексы изменённых изображений
+        const indexes = imagesUrlToDelete
+          .map((image) => user.images.indexOf(image))
+          .filter((index) => index !== -1);
+
+        // Новые ссылки
+        const updatedImagesUrl =
+          await this.s3Service.uploadMultipleFiles(images);
+
+        // Удаление старых изображений
+        await this.s3Service.deleteMultipleFiles(imagesUrlToDelete);
+
+        // Обновление ссылок на изображения с учётом порядка
+        updatedImagesUrl.forEach((imageUrl, i) => {
+          if (indexes[i] !== undefined) {
+            newImagesUrl[indexes[i]] = imageUrl;
+          }
+        });
+      } catch (err) {
+        throw new HttpException(
+          'Update image error',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
+
     const updatedUser = await this.userModel.findByIdAndUpdate(
       { _id: objectId },
       {
         ...rest,
+        images: newImagesUrl,
         age: rest.birthYear
           ? new Date().getFullYear() - rest.birthYear
           : user.age,

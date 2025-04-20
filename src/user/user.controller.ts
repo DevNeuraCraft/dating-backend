@@ -14,10 +14,10 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { IResponseEplores } from './types/respone-explore.inreface';
 import { IResponseUser } from './types/response-user.interface';
 import { UserService } from './user.service';
-import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -107,6 +107,10 @@ export class UserController {
     )
     files: Express.Multer.File[],
   ): Promise<IResponseUser> {
-    return await this.userService.updateUser({objectId: id, ...updateUserDto, images: files});
+    return await this.userService.updateOne({
+      objectId: id,
+      ...updateUserDto,
+      images: files,
+    });
   }
 }
