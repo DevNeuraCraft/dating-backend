@@ -14,22 +14,32 @@ import {
 } from './types/response-swipe.interface';
 import { SearchOneSwipeDto } from './dto/search-one-swipe.dto';
 import { UpdateSwipeDto } from './dto/update-swipe.dto';
+import { ActionType } from '../orders/emun/action-type.enum';
+import { SwipeStatus } from './enum/swipe-status.enum';
 
 @Injectable()
 export class SwipeService {
   constructor(
     @InjectModel(Swipe.name) private readonly swipeModel: Model<SwipeDocument>,
     private readonly orderService: OrdersService,
-    private readonly userService: UserService,
+    private readonly userService: UserService
   ) {}
 
   public async findOne(
-    searchOneSwipeDto: SearchOneSwipeDto,
+    searchOneSwipeDto: SearchOneSwipeDto
   ): Promise<IResponseSwipe> {
     const swipe = await this.swipeModel
       .findOne({
-        swiped_id: searchOneSwipeDto.swipedId,
-        swiper_id: searchOneSwipeDto.swiperId,
+        $or: [
+          {
+            swiper_id: searchOneSwipeDto.swiperId,
+            swiped_id: searchOneSwipeDto.swipedId,
+          },
+          {
+            swiper_id: searchOneSwipeDto.swipedId,
+            swiped_id: searchOneSwipeDto.swiperId,
+          },
+        ],
       })
       .populate('swiped_id')
       .populate('swiper_id');
@@ -37,7 +47,7 @@ export class SwipeService {
   }
 
   public async findAll(
-    searchSwipeDto: SearchSwipeDto,
+    searchSwipeDto: SearchSwipeDto
   ): Promise<IResponseSwipes> {
     const { id, page } = searchSwipeDto;
     const limit = 10;
@@ -48,32 +58,42 @@ export class SwipeService {
       .skip(skip)
       .limit(limit)
       .populate('swiped_id')
-      .populate('swiper_id');
+      .populate('swiper_id')
+      .sort({ createdAt: -1 });
 
     return { swipes };
   }
 
   public async createSwipe(
-    createSwipeDto: CreateSwipeDto,
+    createSwipeDto: CreateSwipeDto
   ): Promise<IResponseSwipe> {
-    // const existingSwipe = await this.swipeModel.findOne({
-    //   swiper_id: createSwipeDto.swiper_id,
-    //   swiped_id: createSwipeDto.swiped_id,
-    // });
+    const existingSwipe = await this.swipeModel.findOne({
+      $or: [
+        {
+          swiper_id: createSwipeDto.swiper_id,
+          swiped_id: createSwipeDto.swiped_id,
+        },
+        {
+          swiper_id: createSwipeDto.swiped_id,
+          swiped_id: createSwipeDto.swiper_id,
+        },
+      ],
+    });
 
-    // if (existingSwipe) {
-    //   return { swipe: existingSwipe };
-    // }
+    if (existingSwipe) {
+      return { swipe: existingSwipe };
+    }
 
     const swipe = await this.swipeModel.create(createSwipeDto);
     if (createSwipeDto.swipe_type === SwipeType.ACCEPT) {
       const { user: swipedUser } = await this.userService.findOneById(
-        createSwipeDto.swiped_id,
+        createSwipeDto.swiped_id
       );
       if (swipedUser) {
         this.orderService.sendSwipeToOrder(
+          ActionType.NEW_SWIPE,
           createSwipeDto.swiper_id,
-          swipedUser.id,
+          swipedUser.id
         );
       }
     }
@@ -81,7 +101,7 @@ export class SwipeService {
   }
 
   public async updateOne(
-    updateSwipeDto: UpdateSwipeDto,
+    updateSwipeDto: UpdateSwipeDto
   ): Promise<IResponseSwipe> {
     const { swipe } = await this.findOne({
       swiperId: updateSwipeDto.swiper_id,
@@ -90,7 +110,7 @@ export class SwipeService {
     if (!swipe)
       throw new HttpException(
         'This swipe does not exists',
-        HttpStatus.UNPROCESSABLE_ENTITY,
+        HttpStatus.UNPROCESSABLE_ENTITY
       );
     const updateSwipe = await this.swipeModel.findOneAndUpdate(
       {
@@ -98,8 +118,20 @@ export class SwipeService {
         swiped_id: updateSwipeDto.swiped_id,
       },
       { status: updateSwipeDto.status },
-      { new: true },
+      { new: true }
     );
+    if (updateSwipeDto.status === SwipeStatus.ACCEPTED) {
+      const { user: swiperUser } = await this.userService.findOneById(
+        updateSwipeDto.swiper_id
+      );
+      if (swiperUser) {
+        this.orderService.sendSwipeToOrder(
+          ActionType.NEW_SWIPE,
+          updateSwipeDto.swiped_id,
+          swiperUser.id
+        );
+      }
+    }
 
     return { swipe: updateSwipe };
   }
