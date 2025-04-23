@@ -83,7 +83,6 @@ export const citiesData: City[] = [
   { name: 'Люберцы' },
   { name: 'Мытищи' },
   { name: 'Южно-Сахалинск' },
-  { name: 'Назрань' },
   { name: 'Бердск' },
   { name: 'Щёлково' },
   { name: 'Балаково' },
