@@ -127,7 +127,7 @@ export class SwipeService {
       if (swiperUser) {
         this.orderService.sendSwipeToOrder(
           ActionType.POS_RESPONSE,
-          updateSwipeDto.swiped_id,
+          updateSwipeDto.swiper_id,
           swiperUser.id
         );
       }
