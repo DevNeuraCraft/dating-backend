@@ -80,9 +80,9 @@ export class SwipeService {
       ],
     });
 
-    if (existingSwipe) {
-      return { swipe: existingSwipe };
-    }
+    // if (existingSwipe) {
+    //   return { swipe: existingSwipe };
+    // }
 
     const swipe = await this.swipeModel.create(createSwipeDto);
     if (createSwipeDto.swipe_type === SwipeType.ACCEPT) {
