@@ -79,7 +79,18 @@ export class SwipeService {
         },
       ],
     });
-
+    await this.swipeModel.deleteOne({
+      $or: [
+        {
+          swiper_id: createSwipeDto.swiper_id,
+          swiped_id: createSwipeDto.swiped_id,
+        },
+        {
+          swiper_id: createSwipeDto.swiped_id,
+          swiped_id: createSwipeDto.swiper_id,
+        },
+      ],
+    })
     // if (existingSwipe) {
     //   return { swipe: existingSwipe };
     // }
